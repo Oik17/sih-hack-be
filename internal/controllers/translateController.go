@@ -3,25 +3,20 @@ package controllers
 import (
 	"bytes"
 	"encoding/json"
-	"fmt"
-	"io/ioutil"
+	"io"
 	"net/http"
-	"os"
 
 	"github.com/labstack/echo/v4"
 )
 
+// TranslateRequest represents the input JSON data structure
 type TranslateRequest struct {
-	Text       string `json:"text"`
-	TargetLang string `json:"targetLang"`
+	From string `json:"from"`
+	To   string `json:"to"`
+	Text string `json:"text"`
 }
 
-type TranslateResponse struct {
-	Translations []struct {
-		TranslatedText string `json:"translatedText"`
-	} `json:"translations"`
-}
-
+// Translate handles the translation request
 func Translate(c echo.Context) error {
 	var req TranslateRequest
 	if err := c.Bind(&req); err != nil {
@@ -31,47 +26,53 @@ func Translate(c echo.Context) error {
 		})
 	}
 
-	requestBody := map[string]interface{}{
-		"contents":           []string{req.Text},
-		"targetLanguageCode": req.TargetLang,
+	// Prepare the request payload for Google Translate API
+	payload := map[string]string{
+		"from": req.From,
+		"to":   req.To,
+		"text": req.Text,
+	}
+	payloadBytes, err := json.Marshal(payload)
+	if err != nil {
+		return c.JSON(http.StatusInternalServerError, map[string]string{
+			"message": "Failed to marshal JSON",
+			"error":   err.Error(),
+		})
 	}
 
-	requestData, err := json.Marshal(map[string]interface{}{
-		"parent":             fmt.Sprintf("projects/%s/locations/global", os.Getenv("GOOGLE_PROJECT_ID")),
-		"contents":           requestBody["contents"],
-		"targetLanguageCode": requestBody["targetLanguageCode"],
+	url := "https://google-translate113.p.rapidapi.com/api/v1/translator/text"
+	reqBody := bytes.NewReader(payloadBytes)
+	httpReq, err := http.NewRequest("POST", url, reqBody)
+	if err != nil {
+		return c.JSON(http.StatusInternalServerError, map[string]string{
+			"message": "Failed to create request",
+			"error":   err.Error(),
+		})
+	}
+
+	httpReq.Header.Add("x-rapidapi-key", "cfe1a66caamsh85d61d2b9b14717p109f9bjsneb6dd9c4fe71")
+	httpReq.Header.Add("x-rapidapi-host", "google-translate113.p.rapidapi.com")
+	httpReq.Header.Add("Content-Type", "application/json")
+
+	res, err := http.DefaultClient.Do(httpReq)
+	if err != nil {
+		return c.JSON(http.StatusInternalServerError, map[string]string{
+			"message": "Failed to execute request",
+			"error":   err.Error(),
+		})
+	}
+	defer res.Body.Close()
+
+	body, err := io.ReadAll(res.Body)
+	if err != nil {
+		return c.JSON(http.StatusInternalServerError, map[string]string{
+			"message": "Failed to read response",
+			"error":   err.Error(),
+		})
+	}
+
+	return c.JSON(res.StatusCode, map[string]interface{}{
+		"status": res.Status,
+		"body":   string(body),
 	})
-	if err != nil {
-		return c.JSON(http.StatusInternalServerError, map[string]string{
-			"message": "Failed to marshal request data",
-			"error":   err.Error(),
-		})
-	}
-
-	url := "https://translate.googleapis.com/v3beta1/projects/locations/global:translateText"
-	resp, err := http.Post(url, "application/json", bytes.NewBuffer(requestData))
-	if err != nil {
-		return c.JSON(http.StatusInternalServerError, map[string]string{
-			"message": "Failed to call Google Translate API",
-			"error":   err.Error(),
-		})
-	}
-	defer resp.Body.Close()
-
-	body, err := ioutil.ReadAll(resp.Body)
-	if err != nil {
-		return c.JSON(http.StatusInternalServerError, map[string]string{
-			"message": "Failed to read response body",
-			"error":   err.Error(),
-		})
-	}
-
-	var translateResp TranslateResponse
-	if err := json.Unmarshal(body, &translateResp); err != nil {
-		return c.JSON(http.StatusInternalServerError, map[string]string{
-			"message": "Failed to unmarshal response data",
-			"error":   err.Error(),
-		})
-	}
-	return c.JSON(http.StatusOK, translateResp)
 }

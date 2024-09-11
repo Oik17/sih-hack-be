@@ -5,8 +5,8 @@ import (
 
 	"github.com/labstack/echo/v4"
 	"github.com/labstack/echo/v4/middleware"
-	"github.com/oik17/sih-agrihealth/internal/controllers"
 	"github.com/oik17/sih-agrihealth/internal/database"
+	"github.com/oik17/sih-agrihealth/internal/routes"
 )
 
 func main() {
@@ -21,7 +21,6 @@ func main() {
 	e.GET("/ping", func(c echo.Context) error {
 		return c.JSON(http.StatusOK, "pong")
 	})
-	e.POST("/upload", controllers.UploadFilesToS3)
-	e.GET("/news", controllers.NewsControllers)
+	routes.RandomRoutes(e)
 	e.Start(":8080")
 }
