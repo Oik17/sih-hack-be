@@ -14,10 +14,10 @@ dockerfiledb:
 	docker exec -it backend-db-1 bash
 
 builddocker:
-	docker build -t guptaakshat/caterpillar-hack-3:latest .
+	docker build -t guptaakshat/sih_hack:latest .
 
 rundocker:
-	docker run -p 8080:8080 guptaakshat/caterpillar-hack-3:latest
+	docker run -p 8080:8080 guptaakshat/sih_hack:latest
 
 deploydocker:
 	docker push guptaakshat/sih_hack:latest
@@ -25,4 +25,5 @@ deploydocker:
 tagdocker:
 	docker tag sih_hack guptaakshat/sih_hack:latest
 
-.PHONY: run postgres createdb dropdb dockerfiledb builddocker rundocker deploydocker
+
+.PHONY: run postgres createdb dropdb dockerfiledb builddocker rundocker deploydocker tagdocker
