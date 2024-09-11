@@ -9,14 +9,19 @@ import (
 	"github.com/labstack/echo/v4"
 )
 
-// TranslateRequest represents the input JSON data structure
 type TranslateRequest struct {
 	From string `json:"from"`
 	To   string `json:"to"`
 	Text string `json:"text"`
 }
 
-// Translate handles the translation request
+type TranslateResponse struct {
+	Trans              string `json:"trans"`
+	SourceLanguageCode string `json:"source_language_code"`
+	SourceLanguage     string `json:"source_language"`
+	TrustLevel         int    `json:"trust_level"`
+}
+
 func Translate(c echo.Context) error {
 	var req TranslateRequest
 	if err := c.Bind(&req); err != nil {
@@ -26,7 +31,6 @@ func Translate(c echo.Context) error {
 		})
 	}
 
-	// Prepare the request payload for Google Translate API
 	payload := map[string]string{
 		"from": req.From,
 		"to":   req.To,
@@ -71,8 +75,17 @@ func Translate(c echo.Context) error {
 		})
 	}
 
-	return c.JSON(res.StatusCode, map[string]interface{}{
-		"status": res.Status,
-		"body":   string(body),
+	var translateResponse TranslateResponse
+	err = json.Unmarshal(body, &translateResponse)
+	if err != nil {
+		return c.JSON(http.StatusInternalServerError, map[string]string{
+			"message": "Failed to parse response",
+			"error":   err.Error(),
+		})
+	}
+
+	return c.JSON(http.StatusOK, map[string]string{
+		"message": "successfully translated language",
+		"data":    translateResponse.Trans,
 	})
 }
