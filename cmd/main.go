@@ -21,6 +21,7 @@ func main() {
 	e.GET("/ping", func(c echo.Context) error {
 		return c.JSON(http.StatusOK, "pong")
 	})
+	
 	routes.RandomRoutes(e)
 	e.Start(":8080")
 }
