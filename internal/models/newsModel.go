@@ -2,13 +2,13 @@ package models
 
 import "github.com/gofrs/uuid"
 
-type news struct {
+type News struct {
 	ID           uuid.UUID `json:"id"`
 	Status       string    `json:"status"`
 	TotalResults int       `json:"totalResults"`
 	Articles     []struct {
+		ID     string `json:"id"`
 		Source struct {
-			ID   string `json:"id"`
 			Name string `json:"name"`
 		} `json:"source"`
 		Author      string `json:"author"`
