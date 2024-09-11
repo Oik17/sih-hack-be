@@ -25,5 +25,4 @@ deploydocker:
 tagdocker:
 	docker tag sih_hack guptaakshat/sih_hack:latest
 
-
 .PHONY: run postgres createdb dropdb dockerfiledb builddocker rundocker deploydocker tagdocker
