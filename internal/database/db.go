@@ -5,9 +5,10 @@ import (
 	"log"
 	"os"
 	"strconv"
-    "github.com/oik17/sih-agrihealth/internal/utils"
+
 	"github.com/jmoiron/sqlx"
 	_ "github.com/lib/pq" // Import the PostgreSQL driver
+	"github.com/oik17/sih-agrihealth/internal/utils"
 )
 
 type Dbinstance struct {
@@ -49,7 +50,7 @@ func Connect() {
 
 func runMigrations(db *sqlx.DB) {
 	_, err := db.Exec(`
-		CREATE TABLE test (test VARCHAR(255));
+		CREATE TABLE IF NOT EXISTS test (test VARCHAR(255));
 	`)
 
 	if err != nil {

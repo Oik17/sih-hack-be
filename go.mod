@@ -4,6 +4,7 @@ go 1.21.3
 
 require (
 	github.com/gofrs/uuid v4.4.0+incompatible
+	github.com/google/uuid v1.6.0
 	github.com/jmoiron/sqlx v1.4.0
 	github.com/joho/godotenv v1.5.1
 	github.com/labstack/echo/v4 v4.12.0

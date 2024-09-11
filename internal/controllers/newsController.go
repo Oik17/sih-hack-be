@@ -6,6 +6,7 @@ import (
 	"io/ioutil"
 	"net/http"
 
+	"github.com/google/uuid"
 	"github.com/labstack/echo/v4"
 	"github.com/oik17/sih-agrihealth/internal/utils"
 )
@@ -14,8 +15,8 @@ type NewsResponse struct {
 	Status       string `json:"status"`
 	TotalResults int    `json:"totalResults"`
 	Articles     []struct {
+		ID     string `json:"id"`
 		Source struct {
-			ID   string `json:"id"`
 			Name string `json:"name"`
 		} `json:"source"`
 		Author      string `json:"author"`
@@ -32,13 +33,17 @@ func NewsControllers(c echo.Context) error {
 
 	resp, err := http.Get(url)
 	if err != nil {
-		return c.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to fetch news"})
+		return c.JSON(http.StatusInternalServerError, map[string]string{
+			"error": err.Error(),
+		})
 	}
 	defer resp.Body.Close()
 
 	body, err := ioutil.ReadAll(resp.Body)
 	if err != nil {
-		return c.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to read response"})
+		return c.JSON(http.StatusInternalServerError, map[string]string{
+			"error": err.Error(),
+		})
 	}
 
 	var newsResponse NewsResponse
@@ -47,7 +52,9 @@ func NewsControllers(c echo.Context) error {
 		return c.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to parse response"})
 	}
 
-	fmt.Println(newsResponse)
+	for i := range newsResponse.Articles {
+		newsResponse.Articles[i].ID = uuid.New().String()
+	}
 
 	return c.JSON(http.StatusOK, newsResponse.Articles)
 }
