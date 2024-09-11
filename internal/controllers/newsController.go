@@ -49,7 +49,9 @@ func NewsControllers(c echo.Context) error {
 	var newsResponse NewsResponse
 	err = json.Unmarshal(body, &newsResponse)
 	if err != nil {
-		return c.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to parse response"})
+		return c.JSON(http.StatusInternalServerError, map[string]string{
+			"error": err.Error(),
+		})
 	}
 
 	for i := range newsResponse.Articles {
